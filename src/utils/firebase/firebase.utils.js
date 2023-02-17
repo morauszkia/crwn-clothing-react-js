@@ -4,34 +4,48 @@ import {
   signInWithRedirect,
   signInWithPopup,
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
 } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+// import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyAZvpGkzfaCqQplePztbhjMMqeS__UzQxo',
-  authDomain: 'react-course-55399.firebaseapp.com',
-  databaseURL:
-    'https://react-course-55399-default-rtdb.europe-west1.firebasedatabase.app',
-  projectId: 'react-course-55399',
-  storageBucket: 'react-course-55399.appspot.com',
-  messagingSenderId: '924671421346',
-  appId: '1:924671421346:web:3ea73e1b9b87f14c08a0fb',
+  apiKey: 'AIzaSyBC_W4cXAfniGPYZptBEegtcS2J5j1YrpE',
+  authDomain: 'crwn-clothing-6f32d.firebaseapp.com',
+  projectId: 'crwn-clothing-6f32d',
+  storageBucket: 'crwn-clothing-6f32d.appspot.com',
+  messagingSenderId: '223021382295',
+  appId: '1:223021382295:web:b9f803aac768ef321a07d2',
+  measurementId: 'G-DFN9YT06M7',
 };
 
 // Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
+// const analytics = getAnalytics(firebaseApp);
 
-const provider = new GoogleAuthProvider();
-provider.setCustomParameters({
+// Similarly other providers can be used (e.g. Facebook, Github, Twitter)
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
+// This should be a singleton
 export const auth = getAuth();
-export const signinWithGooglePopup = () => signInWithPopup(auth, provider);
+
+// Functions to sign in with providers - auth singleton keeps track
+export const signInWithGooglePopup = () =>
+  signInWithPopup(auth, googleProvider);
+export const signInWithGoogleRedirect = () =>
+  signInWithRedirect(auth, googleProvider);
 
 export const db = getFirestore();
 
-export const createUserDocumentFromAuth = async (userAuth) => {
+export const createUserDocumentFromAuth = async (
+  userAuth,
+  additionalInformation = {}
+) => {
+  if (!userAuth) return;
+
   const userDocRef = doc(db, 'users', userAuth.uid);
 
   console.log(userDocRef);
@@ -43,11 +57,22 @@ export const createUserDocumentFromAuth = async (userAuth) => {
     const createdAt = new Date();
 
     try {
-      await setDoc(userDocRef, { displayName, email, createdAt });
+      await setDoc(userDocRef, {
+        displayName,
+        email,
+        createdAt,
+        ...additionalInformation,
+      });
     } catch (error) {
       console.log('error creating the user', error);
     }
   }
 
   return userDocRef;
+};
+
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
+  if (!email || !password) return;
+
+  return await createUserWithEmailAndPassword(auth, email, password);
 };
